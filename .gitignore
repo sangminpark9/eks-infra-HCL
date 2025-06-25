@@ -1,0 +1,5 @@
+.ssh/
+.terraform*
+bedrock_user_accessKeys (1).csv
+mcp_key_pair.pem
+vpc copy.tf.txt
