@@ -15,7 +15,7 @@ resource "aws_vpc" "main" {
   }
 }
 
-# 인터넷 게이트웨이 생성 - VPC가 인터넷과 통신할 수 있도록 함
+# 인터넷 게이트웨이 생성
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
   tags = {
@@ -37,7 +37,7 @@ resource "aws_subnet" "public" {
   }
 }
 
-# 프라이빗 서브넷 3개 생성 - 각각 다른 가용영역에 배치하여 고가용성 확보
+# 프라이빗 서브넷 3개 생성 - 각각 다른 가용영역
 resource "aws_subnet" "private" {
   count             = 3
   vpc_id            = aws_vpc.main.id
@@ -52,7 +52,7 @@ resource "aws_subnet" "private" {
 }
 
 # 단일 NAT Gateway 생성 - 프라이빗 서브넷에서 인터넷 접근을 위함
-# 퍼블릭 서브넷에 위치하여 자동으로 퍼블릭 IP 할당받음 (EIP 불필요)
+# 퍼블릭 서브넷에 위치하여 자동으로 퍼블릭 IP 할당
 resource "aws_nat_gateway" "main" {
   subnet_id = aws_subnet.public.id    # 퍼블릭 서브넷에 배치
   tags = {
@@ -65,7 +65,7 @@ resource "aws_nat_gateway" "main" {
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   route {
-    cidr_block = "0.0.0.0/0"                    # 모든 트래픽
+    cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main.id   # 인터넷 게이트웨이로 라우팅
   }
   tags = {
