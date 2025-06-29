@@ -15,7 +15,6 @@ resource "aws_vpc" "main" {
   }
 }
 
-# 인터넷 게이트웨이 생성 - VPC가 인터넷과 통신할 수 있도록 함
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
   tags = {
@@ -37,7 +36,6 @@ resource "aws_subnet" "public" {
   }
 }
 
-# 프라이빗 서브넷 3개 생성 - 각각 다른 가용영역에 배치하여 고가용성 확보
 resource "aws_subnet" "private" {
   count             = 3
   vpc_id            = aws_vpc.main.id
@@ -51,8 +49,6 @@ resource "aws_subnet" "private" {
   }
 }
 
-# 단일 NAT Gateway 생성 - 프라이빗 서브넷에서 인터넷 접근을 위함
-# 퍼블릭 서브넷에 위치하여 자동으로 퍼블릭 IP 할당받음 (EIP 불필요)
 resource "aws_nat_gateway" "main" {
   subnet_id = aws_subnet.public.id    # 퍼블릭 서브넷에 배치
   tags = {
@@ -65,8 +61,8 @@ resource "aws_nat_gateway" "main" {
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
   route {
-    cidr_block = "0.0.0.0/0"                    # 모든 트래픽
-    gateway_id = aws_internet_gateway.main.id   # 인터넷 게이트웨이로 라우팅
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main.id
   }
   tags = {
     Name = "${var.cluster_name}-public-rt"
@@ -95,92 +91,5 @@ resource "aws_route_table" "private" {
 resource "aws_route_table_association" "private" {
   count          = 3
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
-}
-
-# =============================================================
-# Bastion Host 구성
-# =============================================================
-
-# 최신 Amazon Linux 2 AMI 조회
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm-*-x86_64-gp2"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-}
-
-# Bastion Host용 보안 그룹 생성
-resource "aws_security_group" "bastion" {
-  name_prefix = "${var.cluster_name}-bastion-"
-  vpc_id      = aws_vpc.main.id
-
-  # SSH 접근 허용 (필요에 따라 source IP 제한 가능)
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]  # 보안상 특정 IP로 제한하는 것을 권장
-  }
-
-  # 모든 아웃바운드 트래픽 허용
-  egress {
-    description = "All outbound traffic"
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags = {
-    Name = "${var.cluster_name}-bastion-sg"
-  }
-}
-
-# Bastion Host용 EIP 생성
-resource "aws_eip" "bastion" {
-  domain     = "vpc"
-  depends_on = [aws_internet_gateway.main]
-  tags = {
-    Name = "${var.cluster_name}-bastion-eip"
-  }
-}
-
-# Bastion Host EC2 인스턴스 생성
-resource "aws_instance" "bastion" {
-  ami                    = data.aws_ami.amazon_linux.id
-  instance_type          = "t3.micro"  # 프리티어 가능
-  key_name               = var.key_pair_name  # variables.tf에서 정의 필요
-  vpc_security_group_ids = [aws_security_group.bastion.id]
-  subnet_id              = aws_subnet.public.id
-
-  # 사용자 데이터 - 기본 패키지 업데이트 및 유용한 도구 설치
-  user_data = <<-EOF
-              #!/bin/bash
-              yum update -y
-              yum install -y htop tree wget curl
-              # kubectl 설치 (옵션)
-              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-              chmod +x kubectl
-              mv kubectl /usr/local/bin/
-              EOF
-
-  tags = {
-    Name = "${var.cluster_name}-bastion"
-  }
-}
-
-# Bastion Host에 EIP 연결
-resource "aws_eip_association" "bastion" {
-  instance_id   = aws_instance.bastion.id
-  allocation_id = aws_eip.bastion.id
+  route_table_id = aws_route_table.private[count.index].id
 }
