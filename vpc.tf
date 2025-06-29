@@ -15,11 +15,24 @@ resource "aws_vpc" "main" {
   }
 }
 
+# Internet Gateway 생성
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
+  
   tags = {
     Name = "${var.cluster_name}-igw"
   }
+}
+
+# NAT Gateway용 Elastic IP 생성
+resource "aws_eip" "nat" {
+  domain = "vpc"
+  
+  tags = {
+    Name = "${var.cluster_name}-nat-eip"
+  }
+  
+  depends_on = [aws_internet_gateway.main]
 }
 
 # 단일 퍼블릭 서브넷 생성 - 첫 번째 가용영역에 배치
@@ -36,6 +49,7 @@ resource "aws_subnet" "public" {
   }
 }
 
+# 프라이빗 서브넷 3개 생성 - 각각 다른 가용영역에 배치
 resource "aws_subnet" "private" {
   count             = 3
   vpc_id            = aws_vpc.main.id
@@ -49,48 +63,55 @@ resource "aws_subnet" "private" {
   }
 }
 
+# NAT Gateway 생성 - 퍼블릭 서브넷에 배치
 resource "aws_nat_gateway" "main" {
-  subnet_id = aws_subnet.public.id    # 퍼블릭 서브넷에 배치
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public.id
+  
   tags = {
     Name = "${var.cluster_name}-nat"
   }
-  depends_on = [aws_internet_gateway.main]  # IGW 생성 후에 생성
+  
+  depends_on = [aws_internet_gateway.main]
 }
 
 # 퍼블릭 서브넷용 라우팅 테이블 - 모든 트래픽을 IGW로 라우팅
 resource "aws_route_table" "public" {
   vpc_id = aws_vpc.main.id
+  
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.main.id
   }
+  
   tags = {
     Name = "${var.cluster_name}-public-rt"
   }
 }
 
-# 퍼블릭 서브넷과 라우팅 테이블 연결
-resource "aws_route_table_association" "private" {
-  count          = 3
-  subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private.id
-}
-
-# 프라이빗 서브넷용 단일 라우팅 테이블 - 모든 트래픽을 NAT Gateway로 라우팅
+# 프라이빗 서브넷용 라우팅 테이블 - 모든 트래픽을 NAT Gateway로 라우팅
 resource "aws_route_table" "private" {
   vpc_id = aws_vpc.main.id
+  
   route {
     cidr_block     = "0.0.0.0/0"              # 모든 외부 트래픽
     nat_gateway_id = aws_nat_gateway.main.id  # NAT Gateway로 라우팅
   }
+  
   tags = {
     Name = "${var.cluster_name}-private-rt"
   }
+}
+
+# 퍼블릭 서브넷과 라우팅 테이블 연결
+resource "aws_route_table_association" "public" {
+  subnet_id      = aws_subnet.public.id
+  route_table_id = aws_route_table.public.id
 }
 
 # 모든 프라이빗 서브넷을 같은 라우팅 테이블에 연결
 resource "aws_route_table_association" "private" {
   count          = 3
   subnet_id      = aws_subnet.private[count.index].id
-  route_table_id = aws_route_table.private[count.index].id
+  route_table_id = aws_route_table.private.id
 }
