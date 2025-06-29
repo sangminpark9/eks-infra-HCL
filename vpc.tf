@@ -70,9 +70,10 @@ resource "aws_route_table" "public" {
 }
 
 # 퍼블릭 서브넷과 라우팅 테이블 연결
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.public.id
+resource "aws_route_table_association" "private" {
+  count          = 3
+  subnet_id      = aws_subnet.private[count.index].id
+  route_table_id = aws_route_table.private.id
 }
 
 # 프라이빗 서브넷용 단일 라우팅 테이블 - 모든 트래픽을 NAT Gateway로 라우팅
