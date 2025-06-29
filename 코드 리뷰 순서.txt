@@ -23,9 +23,18 @@ private Route Table Association 적용
 
 ---
 3. security.tf
-클러스터 보안그룹(control plane)
-노드 그룹 보안그룹(워커노드)
-    노드-> 클러스터(443)
-    클러스터->노드(1025, 65535)
-    노드간 통신(*)
-    
+클러스터 보안그룹 (Control Plane)
+    EKS 제어 플레인(마스터 노드)용 보안 그룹
+    API 서버, etcd, 스케줄러 등이 실행되는 곳
+
+노드 그룹 보안그룹 (Worker Node)
+    워커 노드들(실제 Pod가 실행되는 곳)용 보안 그룹
+    kubelet, kube-proxy, 컨테이너 런타임 등 실행
+
+보안 그룹 규칙:
+    노드 -> 클러스터 (포트 443): kubelet이 API 서버와 통신
+    클러스터 -> 노드 (포트 10250): 컨트롤롤 플레인이 kubelet API와 통신
+    노드간 통신 (*): Pod 간 통신, 서비스 디스커버리 등
+    DNS 통신 (포트 53): ECR, AWS 서비스 도메인 해석을 위해
+---
+4. iam.tf
