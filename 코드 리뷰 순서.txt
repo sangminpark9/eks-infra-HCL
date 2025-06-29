@@ -1,0 +1,31 @@
+1. tf 파일 리뷰 순서
+variable
+vpc
+security
+iam
+eks-cluster
+key
+outputs
+provider
+
+---
+2. vpc.tf 순서
+AZ 조회 
+VPC 생성 
+IGW 생성 
+Public 서브넷 생성 
+Private 서브넷 생성
+NAT Gateway 생성 
+public Route Table 규칙 생성
+public Route Table Association 적용
+private Route Table 규칙 생성
+private Route Table Association 적용
+
+---
+3. security.tf
+클러스터 보안그룹(control plane)
+노드 그룹 보안그룹(워커노드)
+    노드-> 클러스터(443)
+    클러스터->노드(1025, 65535)
+    노드간 통신(*)
+    
