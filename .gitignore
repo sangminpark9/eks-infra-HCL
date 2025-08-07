@@ -1,0 +1,5 @@
+.ssh/
+.terraform*
+outpost_role_key.csv
+mcp_key_pair.pem
+vpc copy.tf.txt
