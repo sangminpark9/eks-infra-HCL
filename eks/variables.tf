@@ -49,3 +49,23 @@ variable "worker_role_arn" {
   description = "IAM role ARN for EKS worker nodes"
   type        = string
 }
+
+variable "control_plane_instance_type" {
+  description = "Instance type for the EKS control plane in Outposts (e.g. m5d.outpost)"
+  type        = string
+}
+
+variable "outpost_arn" {
+  description = "Outpost ARN to use for the EKS cluster and node groups"
+  type        = string
+}
+
+variable "outposts_subnet_ids" {
+  description = "List of subnet IDs associated with the Outposts"
+  type        = list(string)
+}
+
+variable "outposts_instance_type" {
+  description = "Instance type for EKS worker nodes on Outposts"
+  type        = string
+}

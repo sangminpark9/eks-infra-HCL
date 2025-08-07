@@ -4,6 +4,7 @@ module "iam" {
 
 module "vpc" {
   source = "./vpc"
+  outpost_arn = var.outpost_arn
 }
 
 module "eks" {
@@ -19,6 +20,11 @@ module "eks" {
 
   cluster_role_arn   = module.iam.eks_cluster_role_arn
   worker_role_arn    = module.iam.eks_worker_role_arn
+
+  control_plane_instance_type = var.control_plane_instance_type
+  outpost_arn                 = var.outpost_arn
+  outposts_subnet_ids         = module.vpc.outposts_subnet_ids
+  outposts_instance_type      = var.outposts_instance_type
 }
 
 

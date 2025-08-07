@@ -1,4 +1,6 @@
 terraform.tfstate
+terraform.tfvars
+.env
 
 # AWS 관련 민감한 파일들
 *.csv

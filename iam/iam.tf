@@ -33,6 +33,7 @@ resource "aws_iam_role" "eks_cluster" {
   name = "eks-cluster-role"
   assume_role_policy = data.aws_iam_policy_document.eks_assume_role.json
 }
+
 # EKS 클러스터에 필요한 Managed 정책 부착
 resource "aws_iam_role_policy_attachment" "eks_cluster_attach" {
   role       = aws_iam_role.eks_cluster.name
@@ -44,10 +45,12 @@ resource "aws_iam_role" "eks_worker" {
   name = "eks-worker-role"
   assume_role_policy = data.aws_iam_policy_document.eks_worker_assume_role.json
 }
+
 resource "aws_iam_role_policy_attachment" "eks_worker_attach" {
   role       = aws_iam_role.eks_worker.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy"
 }
+
 resource "aws_iam_role_policy_attachment" "eks_cni_attach" {
   role       = aws_iam_role.eks_worker.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
@@ -58,8 +61,8 @@ resource "aws_iam_role" "bastion" {
   name = "bastion-role"
   assume_role_policy = data.aws_iam_policy_document.bastion_assume_role.json
 }
+
 resource "aws_iam_role_policy_attachment" "bastion_attach" {
   role       = aws_iam_role.bastion.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
-
