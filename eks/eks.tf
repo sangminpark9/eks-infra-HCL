@@ -13,7 +13,7 @@ resource "aws_eks_cluster" "main" {
 resource "aws_eks_node_group" "workers" {
   cluster_name    = aws_eks_cluster.main.name
   version = var.cluster_version
-  node_group_name = var.node_group_name
+  node_group_name = "${var.cluster_name}-node-group"
   node_role_arn   = var.worker_role_arn  # IAM 모듈에서 전달된 워커 역할 ARN
   subnet_ids      = var.subnet_ids
   instance_types = [var.node_instance_type]
