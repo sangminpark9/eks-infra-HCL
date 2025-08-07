@@ -1,3 +1,5 @@
+terraform.tfstate
+
 # AWS 관련 민감한 파일들
 *.csv
 *.pem
@@ -19,7 +21,6 @@ id_rsa.pub
 *.tfplan
 *.tfplan.*
 terraform.tfvars
-terraform.tfstate
 *.auto.tfvars
 override.tf
 override.tf.json
