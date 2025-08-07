@@ -1,5 +1,42 @@
-.ssh/
-.terraform*
-outpost_role_key.csv
-mcp_key_pair.pem
-vpc copy.tf.txt
+# AWS 관련 민감한 파일들
+*.csv
+*.pem
+*.key
+*key*
+.aws/
+credentials
+config
+.ssh
+id_rsa
+id_rsa.pub
+
+# Terraform 관련 (매우 중요!)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+*.tfplan
+*.tfplan.*
+terraform.tfvars
+terraform.tfstate
+*.auto.tfvars
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# 로그 및 임시 파일
+*.log
+crash.log
+crash.*.log
+.DS_Store
+Thumbs.db
+
+# IDE 관련
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+EOF

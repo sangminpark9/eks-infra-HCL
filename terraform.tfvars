@@ -1,2 +1,2 @@
-bastion_ami = "ami-0abcdef1234567890"
+bastion_ami = "ami-0f3c7d07486cad139"
 key_name    = "my-ssh-key"
