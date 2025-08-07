@@ -16,6 +16,7 @@ resource "aws_eks_node_group" "workers" {
   node_group_name = var.node_group_name
   node_role_arn   = var.worker_role_arn  # IAM 모듈에서 전달된 워커 역할 ARN
   subnet_ids      = var.subnet_ids
+  instance_types = [var.node_instance_type]
   scaling_config {
     desired_size = var.desired_capacity
     max_size     = var.max_capacity
